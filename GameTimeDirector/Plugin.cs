@@ -38,6 +38,8 @@ namespace GameTimeDirector
             base.OnDisabled();
         }
         
+        // В СВЯЗИ С ТЕМ ЧТО В ДАННЫЙ МОМЕНТ КОМПОНЕНТ GTD НЕ ИСПОЛЬЗУЕТСЯ
+        // ПЕРЕНАПРАВЛЕНИЕ НА СОБЫТИЕ PLAYERFULLCONNECTED НЕ НЕСЕТ НИКАКОЙ ФУНКЦИОНАЛЬНОСТИ
         private void OnVerifiedPlayer(VerifiedEventArgs ev)
         {
             if (ev.Player.ReferenceHub.gameObject.GetComponent<GameTimeDirectorComponent>() != null)
