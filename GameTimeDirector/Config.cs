@@ -1,4 +1,5 @@
-﻿using Exiled.API.Interfaces;
+﻿using System;
+using Exiled.API.Interfaces;
 
 namespace GameTimeDirector
 {

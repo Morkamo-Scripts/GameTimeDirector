@@ -1,0 +1,120 @@
+﻿using System.IO;
+using Exiled.API.Features;
+using Microsoft.Data.Sqlite;
+
+namespace GameTimeDirector
+{
+    public static class DatabaseHandler
+    {
+        private static readonly object DBLock = new();
+        private static SqliteConnection _connection;
+
+        internal static void InitializeDatabase()
+        {
+            lock (DBLock)
+            {
+                if (_connection != null)
+                    return;
+
+                var pluginFolder = Path.Combine(Paths.Plugins, Plugin.Instance.Name);
+                Directory.CreateDirectory(pluginFolder);
+
+                var dbPath = Path.Combine(pluginFolder, "GameTimeDatabase.db");
+                var connectionString = $"Data Source={dbPath}";
+
+                _connection = new SqliteConnection(connectionString);
+                _connection.Open();
+
+                using var command = _connection.CreateCommand();
+                command.CommandText =
+                    """
+                    CREATE TABLE IF NOT EXISTS PlayerGameTime (
+                        UserId TEXT NOT NULL,
+                        Minutes REAL NOT NULL,
+                        PRIMARY KEY(UserId)
+                    );
+                    """;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        internal static void Shutdown()
+        {
+            lock (DBLock)
+            {
+                _connection?.Close();
+                _connection?.Dispose();
+                _connection = null;
+            }
+        }
+
+        internal static bool CheckPlayerInDatabase(string userId, bool addIfNot = false)
+        {
+            lock (DBLock)
+            {
+                using var checkCmd = _connection.CreateCommand();
+                checkCmd.CommandText = "SELECT 1 FROM PlayerGameTime WHERE UserId = $userId LIMIT 1;";
+                checkCmd.Parameters.AddWithValue("$userId", userId);
+
+                var exists = checkCmd.ExecuteScalar() != null;
+
+                if (!exists && addIfNot)
+                {
+                    using var insertCmd = _connection.CreateCommand();
+                    insertCmd.CommandText = "INSERT INTO PlayerGameTime (UserId, Minutes) VALUES ($userId, 0.0);";
+                    insertCmd.Parameters.AddWithValue("$userId", userId);
+                    insertCmd.ExecuteNonQuery();
+                }
+
+                return exists;
+            }
+        }
+
+        internal static void UpdatePlayerTime(string userId, double minutesDelta, bool onlyAdd = true)
+        {
+            lock (DBLock)
+            {
+                if (onlyAdd)
+                {
+                    using var selectCmd = _connection.CreateCommand();
+                    selectCmd.CommandText = "SELECT Minutes FROM PlayerGameTime WHERE UserId = $userId;";
+                    selectCmd.Parameters.AddWithValue("$userId", userId);
+
+                    var result = selectCmd.ExecuteScalar();
+                    if (result == null)
+                        return;
+
+                    var current = (double)result;
+                    var sum = current + minutesDelta;
+
+                    if (sum < 0)
+                        sum = 0;
+
+                    using var updateCmd = _connection.CreateCommand();
+                    updateCmd.CommandText =
+                        """
+                        UPDATE PlayerGameTime
+                        SET Minutes = $minutes
+                        WHERE UserId = $userId;
+                        """;
+                    updateCmd.Parameters.AddWithValue("$userId", userId);
+                    updateCmd.Parameters.AddWithValue("$minutes", sum);
+                    updateCmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    using var updateCmd = _connection.CreateCommand();
+                    updateCmd.CommandText =
+                        """
+                        UPDATE PlayerGameTime
+                        SET Minutes = $minutes
+                        WHERE UserId = $userId;
+                        """;
+                    updateCmd.Parameters.AddWithValue("$userId", userId);
+                    updateCmd.Parameters.AddWithValue("$minutes", minutesDelta);
+                    updateCmd.ExecuteNonQuery();
+                }
+            }
+        }
+    }
+}
