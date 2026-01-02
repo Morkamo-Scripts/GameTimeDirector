@@ -1,15 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using Exiled.API.Features;
 using GameTimeDirector.Events;
 using GameTimeDirector.Features;
-using GameTimeDirector.Features.Components;
 using LabApi.Events.Arguments.PlayerEvents;
 using MorkamoEventsRegistrator.Components;
 using SerpentHands.Events.EventArgs.Player;
 using UnityEngine;
-using events = Exiled.Events.Handlers;
 
 namespace GameTimeDirector;
 
@@ -41,7 +38,7 @@ public class GameHandler : IEventsRegistrator
     
     private IEnumerator TimeTracker(Player player)
     {
-        Log.Info("Player connected! Tracker initialized!");
+        Log.Debug($"Player {player.UserId} connected! Tracker initialized!");
         
         while (player.IsConnected)
         {
@@ -56,8 +53,6 @@ public class GameHandler : IEventsRegistrator
             DatabaseHandler.CheckPlayerInDatabase(player.UserId, true);
             DatabaseHandler.UpdatePlayerTime(player.UserId, 1);
         }
-        
-        Log.Info("Player disconnected! Tracker destroyed...");
     }
     
     private void DestroyTimeTracker(string playerUserId)
@@ -68,7 +63,7 @@ public class GameHandler : IEventsRegistrator
         
         CoroutineRunner.Stop(_activeTimeTrackers[playerUserId]);
         _activeTimeTrackers.Remove(playerUserId);
-
-        return;
+        
+        Log.Debug($"Player {playerUserId} disconnected! Tracker destroyed...");
     }
 }

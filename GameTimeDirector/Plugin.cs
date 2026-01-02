@@ -17,13 +17,13 @@ namespace GameTimeDirector
 
         public static Plugin Instance { get; private set; }
         public GameHandler GameHandler { get; private set; }
-
+        
         public override void OnEnabled()
         {
             Instance = this;
-            GameHandler = new GameHandler();
+            GameHandler = new GameHandler(); 
             Exiled.Events.Handlers.Player.Verified += OnVerifiedPlayer;
-            MorkamoEventsRegistrator.Plugin.AddRegistrator(GameHandler);
+            MorkamoEventsRegistrator.Plugin.AddRegistrator(GameHandler); 
             DatabaseHandler.InitializeDatabase();
             base.OnEnabled();
         }
