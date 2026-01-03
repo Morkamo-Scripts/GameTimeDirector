@@ -27,11 +27,12 @@ public class MyTimeCommand : ICommand
         if (time == null)
         {
             response = "<color=orange>Ошибка! Игрок не найден в базе данных. " +
-                       "Возможно вы выполнили команду слишком рано, попробуйте снова.</color>";
+                       "Возможно, вы выполнили команду слишком рано или ещё не наиграли и первой минуты. Попробуйте снова через 2 минуты после начала раунда.</color>";
             return false;
         }
         
-        response = $"<color=green>Ваше наигранное время: {FormatedTime(time.Value)}</color>";
+        response = $"\n<color=green>Игрок '{sender.AsPlayer().Nickname}' ({sender.AsPlayer().UserId})" +
+                   $"\nВаше наигранное время: {FormatedTime(time.Value)}</color>";
         return true;
     }
     
