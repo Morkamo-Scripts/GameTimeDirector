@@ -124,6 +124,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Commands\MyTimeCommand.cs" />
+        <Compile Include="Commands\PlayerTimeCommand.cs" />
         <Compile Include="Config.cs" />
         <Compile Include="DatabaseHandler.cs" />
         <Compile Include="Events\Components\ICancelableEvent.cs" />

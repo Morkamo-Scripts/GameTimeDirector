@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Exiled.API.Features;
 using GameTimeDirector.Events;
@@ -28,13 +29,23 @@ public class GameHandler : IEventsRegistrator
 
     private void OnPlayerFullConnected(PlayerFullConnectedEventArgs ev)
     {
+        if (ev.Player == null || ev.Player.IsNPC)
+            return;
+        
         if (_activeTimeTrackers.ContainsKey(ev.Player.UserId))
             DestroyTimeTracker(ev.Player.UserId);
         
         _activeTimeTrackers.Add(ev.Player.UserId, CoroutineRunner.Run(TimeTracker(ev.Player)));
     }
 
-    private void OnPlayerLeft(PlayerLeftEventArgs ev) => DestroyTimeTracker(ev.Player.UserId);
+    private void OnPlayerLeft(PlayerLeftEventArgs ev)
+    {
+        try
+        {
+            DestroyTimeTracker(ev.Player?.UserId);
+        }
+        catch { /*ignored*/ }
+    }
     
     private IEnumerator TimeTracker(Player player)
     {

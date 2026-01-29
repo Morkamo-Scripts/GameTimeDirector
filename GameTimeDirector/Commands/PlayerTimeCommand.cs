@@ -9,31 +9,29 @@ namespace GameTimeDirector.Commands;
 [CommandHandler(typeof(ClientCommandHandler))]
 [CommandHandler(typeof(GameConsoleCommandHandler))]
 [CommandHandler(typeof(RemoteAdminCommandHandler))]
-public class MyTimeCommand : ICommand
+public class PlayerTimeCommand : ICommand
 {
-    public string Command { get; } = "myTime";
-    public string[] Aliases { get; } = ["mytime"];
-    public string Description { get; } = "Показывает ваше наигранное время на сервере!";
+    public string Command { get; } = "playerTime";
+    public string[] Aliases { get; } = ["pltime"];
+    public string Description { get; } = "Показывает наигранное время игрока на сервере!";
     
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-        if (sender is not PlayerCommandSender)
+        if (arguments.Count < 1)
         {
-            response = "Команда только для игроков!";
+            response = "Формат ввода: pltime [id64]. (Пример: pltime 77777777777777777@steam)";
             return false; 
         }
 
-        double? time = DatabaseHandler.GetPlayerTime(sender.AsPlayer()?.UserId);
+        double? time = DatabaseHandler.GetPlayerTime(arguments.At(0));
 
         if (time == null)
         {
-            response = "<color=orange>Ошибка! Игрок не найден в базе данных. " +
-                       "Возможно, вы выполнили команду слишком рано или ещё не наиграли и первой минуты. Попробуйте снова через 2 минуты после начала раунда.</color>";
+            response = "<color=orange>Игрок не найден в базе данных.</color>";
             return false;
         }
-        
-        response = $"\n<color=green>Игрок '{sender.AsPlayer().Nickname}' ({sender.AsPlayer().UserId})" +
-                   $"\nВаше наигранное время: {FormatedTime(time.Value)}</color>";
+
+        response = $"Наигранное время игрока {arguments.At(0)}: {FormatedTime(time.Value)}";
         return true;
     }
     
